@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "csv-uploader-chart.fullname" . }}
+  labels:
+    app: {{ include "csv-uploader-chart.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "csv-uploader-chart.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "csv-uploader-chart.name" . }}
+    spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.securityContext.runAsGroup }}
+      containers:
+      - name: nginx
+        image: "{{ .Values.image.nginx.repository }}:{{ .Values.image.nginx.tag }}"
+        ports:
+        - containerPort: {{ .Values.containers.nginx.ports.containerPort }}
+        securityContext:
+          allowPrivilegeEscalation: {{ .Values.containers.nginx.securityContext.allowPrivilegeEscalation }}
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: {{ .Values.containers.nginx.securityContext.seccompProfile.type }}
+          privileged: {{ .Values.containers.nginx.securityContext.privileged }}
+          readOnlyRootFilesystem: {{ .Values.containers.nginx.securityContext.readOnlyRootFilesystem }}
+        volumeMounts:
+        - name: {{ .Values.volume.name }}
+          mountPath: {{ .Values.volume.mountPaths.nginx }}
+      - name: webapp
+        image: "{{ .Values.image.webapp.repository }}:{{ .Values.image.webapp.tag }}"
+        ports:
+        - containerPort: {{ .Values.containers.webapp.ports.containerPort }}
+        securityContext:
+          allowPrivilegeEscalation: {{ .Values.containers.webapp.securityContext.allowPrivilegeEscalation }}
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: {{ .Values.containers.webapp.securityContext.seccompProfile.type }}
+        volumeMounts:
+        - name: {{ .Values.volume.name }}
+          mountPath: {{ .Values.volume.mountPaths.webapp }}
+      volumes:
+      - name: {{ .Values.volume.name }}
+        emptyDir: {}

@@ -1,0 +1,21 @@
+The Ansible playbook is designed to automate the deployment and configuration of the csv-uploader web application, which is built using Flask.
+The playbook ensures that the necessary dependencies are installed, the application configuration is correctly set up, and the application is restarted after configuration changes.
+
+csv-uploader/
+│
+├── ansible/             # Ansible configuration directory
+│   ├── playbook.yaml        # Main Ansible playbook
+│   ├── roles/               # Directory for Ansible roles
+│       ├── webapp/              # Role for webapp configuration
+│           ├── tasks/               # Tasks directory
+│           │   └── main.yaml            # Main tasks for the webapp role
+│           ├── templates/           # Templates directory for configuration files
+│           │   └── .env.j2              # Jinja2 template for .env file
+│           ├── files/               # Directory for static files
+│           │   └── your_static_file     # Any static files you need to deploy
+│           └── handlers/            # Handlers directory for the role
+│               └── main.yaml            # Handlers (e.g., for restarting services)
+└── requirements.txt      # Python dependencies (if applicable)
+
+Running the Playbook:-
+ansible-playbook -i inventory ansible/playbook.yaml

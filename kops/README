@@ -1,0 +1,91 @@
+# Kubernetes Cluster Configuration with Kops
+
+This repository contains the YAML configuration files required to create and manage a Kubernetes cluster on AWS using Kops. The cluster utilizes multiple instance groups with a mix of spot and on-demand instances, providing an optimized balance of cost and reliability.
+
+## Configuration Files
+
+### `mixed-group-1.yaml`
+
+This file defines the first instance group (`mixed-group-1`) in the Kubernetes cluster. It uses a mix of spot and on-demand instances, ensuring cost savings while maintaining reliability for critical workloads.
+
+- **Instance Types**: A mix of `m3.xlarge`, `m4.xlarge`, `m5.xlarge`, `m5a.xlarge`, `t2.xlarge`, and `t3.xlarge`.
+- **Lifecycle**:
+  - **On-Demand Base Capacity**: At least 2 instances will always be on-demand.
+  - **On-Demand Percentage Above Base**: 50% of instances above the base will be on-demand.
+  - **Spot Allocation Strategy**: `capacity-optimized` to reduce the likelihood of interruptions.
+
+### `mixed-group-2.yaml`
+
+This file defines the second instance group (`mixed-group-1`). Similar to `mixed-group-2`, it also uses a mix of spot and on-demand instances but with different instance types.
+
+- **Instance Types**: A mix of `m4.large`, `m5.large`, and `t3.large`.
+- **Lifecycle**:
+  - **On-Demand Base Capacity**: At least 2 instances will always be on-demand.
+  - **On-Demand Percentage Above Base**: 50% of instances above the base will be on-demand.
+  - **Spot Allocation Strategy**: `capacity-optimized` to minimize the risk of spot instance termination.
+
+## Benefits
+
+### Cost Optimization
+
+Both instance groups are configured to utilize spot instances, which are significantly cheaper than on-demand instances. By balancing spot and on-demand instances, these configurations provide substantial cost savings without compromising the stability of critical workloads.
+
+### Enhanced Reliability
+
+The inclusion of on-demand instances in both groups ensures that essential workloads continue to operate even if spot instances are interrupted. The `capacity-optimized` strategy further enhances reliability by selecting spot instances with the highest availability.
+
+### Flexible and Scalable Infrastructure
+
+The mixed instances policy allows for flexible scaling of resources based on workload demands. The Cluster Autoscaler can adjust the number of instances in each group dynamically, optimizing the cluster's performance and cost-efficiency.
+
+## Usage Instructions
+
+### Prerequisites
+
+- **Kops Installed**: Ensure Kops is installed on your local machine.
+- **AWS CLI Configured**: The AWS CLI should be configured with credentials that have the necessary permissions to manage EC2, VPC, and related AWS services.
+- **S3 Bucket for State Store**: An S3 bucket is required to store the Kops state (specified via the `KOPS_STATE_STORE` environment variable).
+
+### Steps to Apply the Configuration
+
+Save the YAML Files
+
+   Save the provided `mixed-group-1.yaml` and `mixed-group-2.yaml` files in your working directory.
+
+Apply the Instance Group Configurations
+
+   Use the following commands to apply each instance group configuration to your Kops cluster:
+
+   ```bash
+   kops replace -f mixed-group-1.yaml --name <your-cluster-name>
+   kops replace -f mixed-group-2.yaml --name <your-cluster-name>
+
+Update the Cluster
+Update the cluster with the new instance group configurations:
+kops update cluster --name <your-cluster-name> --yes
+Perform a Rolling Update (if needed)
+
+To apply the changes to running instances, perform a rolling update:
+kops rolling-update cluster --name <your-cluster-name> --yes
+Validate the Cluster
+
+Ensure that the cluster is running as expected:
+kops validate cluster --name <your-cluster-name>
+
+Monitoring and Scaling
+Cluster Autoscaler
+Both instance groups are configured to work with the Cluster Autoscaler. The autoscaler will automatically adjust the number of nodes based on resource demand, ensuring efficient use of spot instances while maintaining a stable base of on-demand instances.
+
+Logs and Monitoring
+You can monitor the Cluster Autoscaler and instance group activity through the Kubernetes dashboard or by using kubectl to check the logs:
+
+kubectl logs -f deployment/cluster-autoscaler -n kube-system
+Troubleshooting
+If you encounter issues with the cluster or instance groups:
+
+Check Kops Logs
+
+Use the following command to check the Kops cluster logs:
+kops validate cluster --name <your-cluster-name>
+
+Check the AWS EC2 and S3 dashboards for any issues related to instances, VPCs, or the Kops state store.

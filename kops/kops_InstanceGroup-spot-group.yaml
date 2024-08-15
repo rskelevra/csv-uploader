@@ -1,0 +1,67 @@
+# Instance Group 1: Mixed Spot and On-Demand Instances
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  labels:
+    kops.k8s.io/cluster: spot-kops-cluster.k8s.local
+  name: mixed-group-1
+spec:
+  cloudLabels:
+    k8s.io/cluster-autoscaler/enabled: "1"
+    k8s.io/cluster-autoscaler/spot-kops-cluster.k8s.local: "1"
+    kops.k8s.io/instance-selector: "1"
+  image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20200716
+  machineType: m3.xlarge
+  maxSize: 15
+  minSize: 3
+  mixedInstancesPolicy:
+    instances:
+    - m3.xlarge
+    - m4.xlarge
+    - m5.xlarge
+    - m5a.xlarge
+    - t2.xlarge
+    - t3.xlarge
+    onDemandBaseCapacity: 2  # Ensure some on-demand instances are always available
+    onDemandPercentageAboveBaseCapacity: 50  # 50% of the instances above the base will be on-demand
+    spotAllocationStrategy: capacity-optimized
+  nodeLabels:
+    kops.k8s.io/instancegroup: mixed-group-1
+  role: Node
+  subnets:
+  - eu-west-1a
+  - eu-west-1b
+  - eu-west-1c
+
+---
+# Instance Group 2: Mixed Spot and On-Demand Instances
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  labels:
+    kops.k8s.io/cluster: spot-kops-cluster.k8s.local
+  name: mixed-group-2
+spec:
+  cloudLabels:
+    k8s.io/cluster-autoscaler/enabled: "1"
+    k8s.io/cluster-autoscaler/spot-kops-cluster.k8s.local: "1"
+    kops.k8s.io/instance-selector: "1"
+  image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20200716
+  machineType: m4.large
+  maxSize: 10
+  minSize: 2
+  mixedInstancesPolicy:
+    instances:
+    - m4.large
+    - m5.large
+    - t3.large
+    onDemandAboveBase: 50  # 50% of instances are on-demand
+    onDemandBase: 1  # At least one on-demand instance
+    spotAllocationStrategy: capacity-optimized
+  nodeLabels:
+    kops.k8s.io/instancegroup: mixed-group-1
+  role: Node
+  subnets:
+  - eu-west-1a
+  - eu-west-1b
+  - eu-west-1c

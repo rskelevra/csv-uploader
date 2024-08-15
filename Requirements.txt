@@ -1,0 +1,3 @@
+# No additional requirements are needed.
+# All dependencies are installed directly within the Dockerfile.
+# Flask, Boto3, and python-dotenv are installed via pip in the Dockerfile.

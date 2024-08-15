@@ -1,0 +1,4 @@
+apiVersion: v2
+name: csv-uploader
+description: A Helm chart for deploying the CSV Uploader web application.
+version: 0.1.0

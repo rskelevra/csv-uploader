@@ -1,0 +1,52 @@
+replicaCount: 2
+
+image:
+  nginx:
+    repository: nginx
+    tag: latest
+  webapp:
+    repository: rsharm49/casestudy
+    tag: v0.2
+  pullPolicy: IfNotPresent
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+containers:
+  nginx:
+    ports:
+      containerPort: 80
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      privileged: false
+      readOnlyRootFilesystem: true
+
+  webapp:
+    ports:
+      containerPort: 5000
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+
+volume:
+  name: shared-storage
+  mountPaths:
+    nginx: /usr/share/nginx/html
+    webapp: /app/static
+
+service:
+  type: NodePort  # Type of service, can be ClusterIP, NodePort, or LoadBalancer
+  port: 80        # The port the service will expose
+  nodePort: 30080 # NodePort for the service, applicable if type is NodePort
+  targetPort: 80  # The port on the container that the service will forward to

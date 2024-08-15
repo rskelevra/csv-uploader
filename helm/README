@@ -1,0 +1,69 @@
+Helm Chart for Kubernetes Application
+This repository contains Helm chart configurations for deploying a Kubernetes application. The provided Helm chart includes essential Kubernetes resources such as Deployments, Services, Horizontal Pod Autoscalers (HPA), and configurable values through values.yaml.
+
+Files Overview
+Chart.yaml: This file contains metadata about the Helm chart, such as its name, version, and a brief description.
+values.yaml: This file contains default values for the variables used in the Helm chart templates. It allows customization of the deployment without modifying the templates directly.
+deployment.yaml: This template defines a Kubernetes Deployment resource, specifying the desired state for your application's Pods.
+service.yaml: This template defines a Kubernetes Service resource, exposing your application to other services or external traffic.
+hpa.yaml: This template defines a Horizontal Pod Autoscaler resource, which automatically scales the number of Pods in your deployment based on observed CPU utilization or other select metrics.
+Prerequisites
+Before deploying this Helm chart, ensure that you have the following:
+
+Kubernetes Cluster: A running Kubernetes cluster, either local or in the cloud.
+Helm Installed: Helm must be installed and configured to interact with your Kubernetes cluster.
+Installing the Chart
+To deploy the application using the provided Helm chart:
+
+Clone the Repository:
+git clone <repository-url>
+cd <repository-directory>
+Customize values.yaml (Optional):
+
+Open the values.yaml file to customize any values specific to your environment, such as image repository, tag, resource limits, or replicas.
+Install the Helm Chart:
+
+Use Helm to install the chart into your Kubernetes cluster:
+helm install <release-name> .
+Replace <release-name> with a name for your Helm release.
+Configuration
+The values.yaml file contains default configuration values for the Helm chart. Below are some of the key configurable parameters:
+
+replicaCount: Number of replicas for the Deployment.
+image.repository: The Docker image repository for the application.
+image.tag: The Docker image tag to deploy.
+service.type: The type of Kubernetes service (e.g., ClusterIP, NodePort, LoadBalancer).
+resources: Resource requests and limits for the Pods.
+hpa.enabled: Enable or disable Horizontal Pod Autoscaling.
+hpa.minReplicas: Minimum number of replicas for HPA.
+hpa.maxReplicas: Maximum number of replicas for HPA.
+hpa.targetCPUUtilizationPercentage: Target CPU utilization percentage for scaling.
+Template Files
+deployment.yaml
+This file defines the Kubernetes Deployment for your application. It specifies the number of replicas, the container image to use, resource requests and limits, and environment variables.
+
+service.yaml
+This file defines the Kubernetes Service that exposes your application to other services within the cluster or externally. The type of service can be configured as ClusterIP, NodePort, or LoadBalancer.
+
+hpa.yaml
+This file defines a Horizontal Pod Autoscaler that automatically adjusts the number of Pods based on CPU utilization. It scales the application up or down based on the target CPU utilization percentage specified in the values.yaml file.
+
+Managing the Deployment
+Upgrade the Chart
+To upgrade the application with new changes:
+helm upgrade <release-name> .
+Uninstall the Chart
+To uninstall the Helm release:
+helm uninstall <release-name>
+This command removes all Kubernetes resources associated with the Helm release.
+
+Check the Deployment Status
+You can check the status of the deployed application using kubectl:
+kubectl get all -l app.kubernetes.io/instance=<release-name>
+
+Conclusion
+This Helm chart provides a flexible and customizable way to deploy your application to a Kubernetes cluster. By modifying the values.yaml file, you can easily adjust the deployment settings to suit your needs.
+
+For more detailed information on Helm and Kubernetes, refer to the Helm documentation and the Kubernetes documentation.
+
+This README should provide a clear and concise guide for users looking to deploy their application using the provided Helm chart. It includes instructions for installation, configuration, and management of the deployment.
