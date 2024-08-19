@@ -1,45 +1,61 @@
 ---
 - name: Configure Nginx in Kops
   hosts: localhost
-  become: yes  # Optional, if needed for your environment
+  become: yes
+  gather_facts: no
 
   vars:
-    shared_storage_path: "/Users/sharmrav/csv-uploader-data"
-    domain_name: "casestudy.lab"
-    ssl_certificate_file: "{{ shared_storage_path }}/certs/nginx-selfsigned.crt"
-    ssl_certificate_key_file: "{{ shared_storage_path }}/certs/nginx-selfsigned.key"
-    nginx_config_file: "{{ shared_storage_path }}/nginx.conf"
+    ssl_certificate_file: "/etc/nginx/ssl/cert.crt"  # Replace with your actual certificate path
+    ssl_certificate_key_file: "/etc/nginx/ssl/cert.key"  # Replace with your actual key path
+    domain_name: "ounassapp.com"  # Define the domain name here
+    shared_storage_path: "/usr/share/nginx/html"  # Define the shared storage path here
 
   tasks:
+    - name: Ensure sudo password is provided
+      ansible.builtin.debug:
+        msg: "This playbook requires sudo password. Make sure you have sudo access."
+
     - name: Create necessary directories
+      file:
+        path: /etc/nginx
+        state: directory
+        mode: '0755'
+
+    - name: Deploy Nginx configuration file
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        mode: '0644'
+
+    - name: Deploy SSL certificate
+      copy:
+        src: "{{ ssl_certificate_file }}"
+        dest: /etc/nginx/ssl/cert.crt
+        remote_src: true
+        mode: '0644'
+
+    - name: Deploy SSL certificate key
+      copy:
+        src: "{{ ssl_certificate_key_file }}"
+        dest: /etc/nginx/ssl/cert.key
+        mode: '0600'
+
+    - name: Ensure Nginx is installed
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Create additional directories
       file:
         path: "{{ item }}"
         state: directory
         mode: '0755'
       loop:
         - "{{ shared_storage_path }}"
-        - "{{ shared_storage_path }}/certs"
-        - "{{ shared_storage_path }}/html"
+        - "/etc/nginx/ssl"
 
-    - name: Generate a self-signed SSL certificate
-      openssl_certificate:
-        path: "{{ ssl_certificate_file }}"
-        privatekey_path: "{{ ssl_certificate_key_file }}"
-        csr_path: "{{ shared_storage_path }}/certs/nginx.csr"
-        provider: selfsigned
-        common_name: "{{ domain_name }}"
-        subject:
-          organizationName: "Ravi Sharma"
-          organizationalUnitName: "IT Department"
-        days: 365
-      register: ssl_cert
-
-    - name: Create a basic Nginx configuration file
-      template:
-        src: templates/nginx.conf.j2
-        dest: "{{ nginx_config_file }}"
-        mode: '0644'
-
-  handlers:
-    - name: Reload Nginx
-      command: nginx -s reload
+    - name: Check if Nginx configuration file exists
+      stat:
+        path: /etc/nginx/nginx.conf
+      register: nginx_conf

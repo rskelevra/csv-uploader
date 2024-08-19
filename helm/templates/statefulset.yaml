@@ -1,0 +1,103 @@
+{{- if .Values.statefulset }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- with .Values.statefulset.labels }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- with .Values.statefulset.annotations }}
+    {{ toYaml . | nindent 4}}
+    {{- end }}  
+spec:
+  serviceName: {{ .Values.statefulset.serviceName }}
+  podManagementPolicy: {{ .Values.statefulset.podManagementPolicy | default "Parallel" | quote }}
+  updateStrategy:
+    type: {{ .Values.statefulset.updateStrategy | quote }}
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.statefulset.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- with .Values.statefulset.selectorLabels }}
+      {{ toYaml . }}
+      {{- end }}
+  template:
+    metadata:
+      {{- with .Values.statefulset.podAnnotations }}
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with .Values.statefulset.podLabels }}
+        {{ toYaml .  | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.statefulset.statefulsetSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}     
+      {{- if .Values.statefulset.imagePullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.statefulset.imagePullSecrets }}
+      {{- end }}
+      containers:  
+        - name: {{ .Values.statefulset.container.name }}
+          {{- with .Values.statefulset.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}     
+          {{- if .Values.statefulset.volumeMounts }}
+          volumeMounts:
+          {{- with .Values.statefulset.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}  
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.statefulset.pullPolicy }}
+          ports:
+            - name: {{ .Values.statefulset.ports.name }}
+              containerPort: {{ .Values.statefulset.ports.number }}
+              protocol: {{ .Values.statefulset.ports.protocol }}
+          {{- if .Values.env }}
+          env:
+            {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.configmap .Values.secret }}              
+          envFrom:
+            {{- if .Values.configmap }}
+            - configMapRef:
+                name: {{ .Values.configmap.name | default .Release.Name }}
+            {{- end }}
+            {{- if .Values.secret }}
+            - secretRef:
+                name: {{ .Values.secret.name | default .Release.Name }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.statefulset.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.statefulset.livenessProbe.path | default "/" }}
+              port: {{ .Values.statefulset.livenessProbe.port | default .Values.statefulset.ports.number }}
+          {{- end }}
+          {{- if .Values.statefulset.readinessProbe }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.statefulset.readinessProbe.path | default "/" }}
+              port: {{ .Values.statefulset.readinessProbe.port | default .Values.statefulset.ports.number }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.statefulset.resources | nindent 12 }}
+      {{- if .Values.statefulset.volumes }}
+      volumes:
+        {{- with .Values.statefulset.volumes }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+{{- end }}

@@ -1,52 +1,142 @@
-replicaCount: 2
+namespace: default
 
-image:
-  nginx:
-    repository: nginx
-    tag: latest
-  webapp:
-    repository: rsharm49/casestudy
-    tag: v0.2
-  pullPolicy: IfNotPresent
-
-securityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
-  runAsGroup: 1000
-
-containers:
-  nginx:
-    ports:
-      containerPort: 80
-    securityContext:
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-        - ALL
-      seccompProfile:
-        type: RuntimeDefault
-      privileged: false
-      readOnlyRootFilesystem: true
-
-  webapp:
-    ports:
-      containerPort: 5000
-    securityContext:
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-        - ALL
-      seccompProfile:
-        type: RuntimeDefault
-
-volume:
-  name: shared-storage
-  mountPaths:
-    nginx: /usr/share/nginx/html
-    webapp: /app/static
+env:
+- name: DATABASE_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: csv-uploader
+      key: database_username
+- name: DATABASE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: csv-uploader
+      key: database_password
 
 service:
-  type: NodePort  # Type of service, can be ClusterIP, NodePort, or LoadBalancer
-  port: 80        # The port the service will expose
-  nodePort: 30080 # NodePort for the service, applicable if type is NodePort
-  targetPort: 80  # The port on the container that the service will forward to
+  type: NodePort
+  ports:
+    port: 80
+    targetPort: 80
+    nodePort: 30080
+    name: http
+  labels:
+    app: csv-uploader-helm
+  selector:
+    app: csv-uploader-helm
+ingress:
+  enabled: true
+  className: "nginx"
+  tls:
+  - secretName: tls
+    hosts:
+    - csv-uploader-helm.whs.ounass.com
+  hosts:
+  - host: csv-uploader-helm.whs.ounass.com
+    paths:
+    - path: /
+      serviceName: csv-uploader-helm
+      servicePort: 8080
+      pathType: ImplementationSpecific
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 10  # Must be greater than 0
+  targetCPUUtilizationPercentage: 80
+  deploymentName: "csv-uploader-helm"  # This should match your deployment's name
+  secret:
+  name: ounasss-secret-helm
+configmap:
+  data:
+    DATABASE_READER_URL: 'jdbc:postgresql://test.eu-west-1.rds.amazonaws.com/ounass'
+    DATABASE_URL: 'jdbc:postgresql://test.eu-west-1.rds.amazonaws.com/ounass'
+deployment:
+  replicaCount: 1
+  updatestrategy:
+  selectorLabels:
+    app: csv-uploader-helm
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 8080
+    initialDelaySeconds: 3
+    periodSeconds: 3
+  readinessProbe:
+    httpGet:
+      path: /readiness
+      port: 8080
+    initialDelaySeconds: 3
+    periodSeconds: 3
+  containers:
+    - name: nginx
+      image:
+        repository: nginx
+        tag: "latest"
+      ports:
+        - containerPort: 80
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        privileged: false
+        readOnlyRootFilesystem: true
+      volumeMounts:
+        - name: certificates
+          mountPath: /certificates
+          readOnly: true
+        - name: shared-storage
+          mountPath: /usr/share/nginx/html
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+    - name: webapp
+      image:
+        repository: rsharm49/casestudy
+        tag: v0.2
+      ports:
+        - containerPort: 5000
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        seccompProfile:
+          type: RuntimeDefault
+      env:
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: csv-uploader
+              key: database_username
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: csv-uploader
+              key: database_password
+      volumeMounts:
+        - name: shared-storage
+          mountPath: /app/static
+      resources:
+        requests:
+          cpu: 250m
+          memory: 250Mi
+        limits:
+          cpu: 500m
+          memory: 500Mi
+  imagePullSecrets: artifacthub-pull-secret-new
+  imagePullPolicy: Always
+  volumes:
+    - name: certificates
+      secret:
+        secretName: ounass-full-certificates-keystore
+        items:
+          - key: ounass_keystore_payload
+            path: keystore.jks
+    - name: shared-storage
+      emptyDir: {}

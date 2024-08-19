@@ -1,54 +1,41 @@
 # csv-uploader
 Kubernetes setup with Kops featuring mixed instance groups and auto-scaling for both deployment and cluster. Deploys Nginx and a Python web app in the same pod, with shared storage for static files. Includes Ansible for config management, Helm for templating, and uploads CSVs to S3 with Glacier transition.
 
-# CSV File Uploader Web Application
-
-docker pull rsharm49/casestudy:v0.2
-Once uploaded, the files are processed, stored locally, and then uploaded to an Amazon S3 bucket. The application also lists previously uploaded files and provides immediate feedback to the user after an action.
-
 ## Features
 
 - **Upload CSV Files**: Users can upload CSV files through a simple web interface.
 - **File Processing**: The content of the CSV file is processed (for example, printed to the console).
-- **File Storage**: Files are stored locally in the `uploads/` directory and then uploaded to an S3 bucket.
+- **File Storage**: Files are uploaded to an S3 bucket.
 - **List Uploaded Files**: A list of previously uploaded files is displayed on the web page.
 - **Responsive Design**: The web interface is built with Bootstrap to be responsive and visually appealing on all devices.
-
-## Prerequisites
-
-Before running the application, ensure you have the following installed:
-
-- Python 3.7+
-- Flask
-- Boto3 (AWS SDK for Python)
-- python-dotenv (for environment variable management)
-- An AWS account with access to S3
 
 ## Installation
 
 1. **Clone the repository**:
 
-   ```bash
    git clone https://github.com/rskelevra/csv-uploader.git
    cd csv-uploader
 
-2. **Set up environment variables**:
+2. **Set up environment variable in .env file**:
 
-python3 -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+AWS_BUCKET_NAME='changeme'
+FLASK_ACCESS_KEY_ID='changeme'
+FLASK_SECRET_ACCESS_KEY='changeme'
+FLASK_SECRET_KEY='changeme'
+DOMAIN='localhost'
+PORT='8080'
+PREFIX=
 
 3. **Create empty uploads/ directory**:
 
 mkdir uploads
 
-4. **Install the required packages**:
-pip install flask
-pip install boto3
-pip install python-dotenv
+4. **Build the Application**:
+docker build -t csv-uploader:latest .
 
 5. **Running the Application**:
+docker run -p 8080:5000 --name web my-web-app:latest
 
-python app.py
 The application will start on http://127.0.0.1:8080/. Open this URL in your web browser to access the web interface.
 
 **AWS S3 Configuration**
@@ -57,6 +44,12 @@ To automatically transition objects to Amazon S3 Glacier after a specified numbe
 
 Go to the S3 bucket in your AWS Management Console.
 Under the "Management" tab, create a lifecycle rule to transition objects to Glacier after your desired number of days.
+
+# CSV File Uploader Web Application
+
+docker pull rsharm49/casestudy:v0.2
+docker run -p 8080:5000 --name web my-web-app:latest
+Once uploaded, the files are processed, stored locally, and then uploaded to an Amazon S3 bucket. The application also lists previously uploaded files and provides immediate feedback to the user after an action.
 
 **Project Structure**
 
@@ -67,33 +60,21 @@ csv-uploader/
 ├── uploads/             # Directory for storing uploaded files
 ├── templates/
 │   └── index.html       # HTML template for the web interface
-├── k8s/                 # Kubernetes manifests directory
-│   ├── deployment.yaml      # Deployment manifest
-│   ├── service.yaml         # Service manifest
-│   ├── hpa.yaml             # Horizontal Pod Autoscaler manifest
-│   ├── ingress.yaml         # Ingress manifest (optional)
-│   ├── pvc.yaml             # Persistent Volume Claim manifest (if persistent storage is needed)
 ├── ansible/             # Ansible configuration directory
 │   ├── playbook.yaml        # Main Ansible playbook
-│   ├── roles/               # Directory for Ansible roles
-│       ├── webapp/              # Role for webapp configuration
-│           ├── tasks/               # Tasks directory
-│           │   └── main.yaml            # Main tasks for the webapp role
-│           ├── templates/           # Templates directory for configuration files
-│           │   └── .env.j2              # Jinja2 template for .env file
-│           ├── files/               # Directory for static files
-│           │   └── your_static_file     # Any static files you need to deploy
-│           └── handlers/            # Handlers directory for the role
-│               └── main.yaml            # Handlers (e.g., for restarting services)
+│   ├── templates/
+│       ├── nginx.conf.j2/              # nginx conf file
 ├── helm/                # Helm chart directory
 │   ├── Chart.yaml           # Helm chart metadata
+│   ├── README
 │   ├── values.yaml          # Default values for the chart
 │   ├── templates/           # Directory for Kubernetes object templates
 │       ├── deployment.yaml      # Deployment template
 │       ├── service.yaml         # Service template
 │       ├── hpa.yaml             # HPA template
 │       ├── ingress.yaml         # Ingress template (optional)
-│       ├── pvc.yaml             # PVC template (if needed)
+│       ├── statefulset.yaml             # PVC template (if needed)
+│       ├── configmap.yaml             # configmap.yaml (if needed)
 │       └── _helpers.tpl         # Helper templates (if needed)
 └── requirements.txt      # Python dependencies
 

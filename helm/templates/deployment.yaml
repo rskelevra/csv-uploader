@@ -1,54 +1,95 @@
+{{- if .Values.deployment }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "csv-uploader-chart.fullname" . }}
+  name: {{ .Release.Name }}
+  namespace: {{ .Values.namespace }}
   labels:
-    app: {{ include "csv-uploader-chart.name" . }}
+    {{- with .Values.deployment.selectorLabels }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- with .Values.deployment.annotations }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.deployment.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
-      app: {{ include "csv-uploader-chart.name" . }}
+      {{- with .Values.deployment.selectorLabels }}
+      {{ toYaml . | nindent 6 }}
+      {{- end }}
   template:
     metadata:
+      annotations:
+        {{- with .Values.deployment.podAnnotations }}
+        rollme: {{ randAlphaNum 5 | quote }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       labels:
-        app: {{ include "csv-uploader-chart.name" . }}
+        {{- with .Values.deployment.selectorLabels }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
     spec:
+      {{- with .Values.deployment.deploySecurityContext }}
       securityContext:
-        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
-        runAsUser: {{ .Values.securityContext.runAsUser }}
-        runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.deployment.imagePullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.deployment.imagePullSecrets }}
+      {{- end }}
       containers:
-      - name: nginx
-        image: "{{ .Values.image.nginx.repository }}:{{ .Values.image.nginx.tag }}"
-        ports:
-        - containerPort: {{ .Values.containers.nginx.ports.containerPort }}
-        securityContext:
-          allowPrivilegeEscalation: {{ .Values.containers.nginx.securityContext.allowPrivilegeEscalation }}
-          capabilities:
-            drop:
-            - ALL
-          seccompProfile:
-            type: {{ .Values.containers.nginx.securityContext.seccompProfile.type }}
-          privileged: {{ .Values.containers.nginx.securityContext.privileged }}
-          readOnlyRootFilesystem: {{ .Values.containers.nginx.securityContext.readOnlyRootFilesystem }}
-        volumeMounts:
-        - name: {{ .Values.volume.name }}
-          mountPath: {{ .Values.volume.mountPaths.nginx }}
-      - name: webapp
-        image: "{{ .Values.image.webapp.repository }}:{{ .Values.image.webapp.tag }}"
-        ports:
-        - containerPort: {{ .Values.containers.webapp.ports.containerPort }}
-        securityContext:
-          allowPrivilegeEscalation: {{ .Values.containers.webapp.securityContext.allowPrivilegeEscalation }}
-          capabilities:
-            drop:
-            - ALL
-          seccompProfile:
-            type: {{ .Values.containers.webapp.securityContext.seccompProfile.type }}
-        volumeMounts:
-        - name: {{ .Values.volume.name }}
-          mountPath: {{ .Values.volume.mountPaths.webapp }}
+        {{- range .Values.deployment.containers }}
+        - name: {{ .name }}
+          {{- with .securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .image.repository }}:{{ .image.tag  }}"
+          imagePullPolicy: {{ .imagePullPolicy }}
+          {{- if .volumeMounts }}
+          volumeMounts:
+            {{- with .volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          ports:
+            {{- with .ports }}
+            {{- range . }}
+            - name: {{ .name }}
+              containerPort: {{ .containerPort }}
+              protocol: {{ .protocol }}
+            {{- end }}
+            {{- end }}
+          {{- if .env }}
+          env:
+            {{- with .env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .livenessProbe .readinessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ .livenessProbe.path | default "/" }}
+              port: {{ .livenessProbe.port | default 80 }}
+          readinessProbe:
+            httpGet:
+              path: {{ .readinessProbe.path | default "/" }}
+              port: {{ .readinessProbe.port | default 80 }}
+          {{- end }}
+          resources:
+            {{- toYaml .resources | nindent 12 }}
+        {{- end }}
+      {{- if .Values.deployment.volumes }}
       volumes:
-      - name: {{ .Values.volume.name }}
-        emptyDir: {}
+        {{- with .Values.deployment.volumes }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+{{- end }}

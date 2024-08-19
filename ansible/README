@@ -5,17 +5,13 @@ csv-uploader/
 │
 ├── ansible/             # Ansible configuration directory
 │   ├── playbook.yaml        # Main Ansible playbook
-│   ├── roles/               # Directory for Ansible roles
-│       ├── webapp/              # Role for webapp configuration
-│           ├── tasks/               # Tasks directory
-│           │   └── main.yaml            # Main tasks for the webapp role
-│           ├── templates/           # Templates directory for configuration files
-│           │   └── .env.j2              # Jinja2 template for .env file
-│           ├── files/               # Directory for static files
-│           │   └── your_static_file     # Any static files you need to deploy
-│           └── handlers/            # Handlers directory for the role
-│               └── main.yaml            # Handlers (e.g., for restarting services)
-└── requirements.txt      # Python dependencies (if applicable)
+│   ├── templates/           # Templates directory for configuration files
+│   │   └── .env.j2              # Jinja2 template for .env file
+└── ├── README
 
 Running the Playbook:-
 ansible-playbook -i inventory ansible/playbook.yaml
+
+Sudo Password Requirement:
+You can provide it when running the playbook by using the --ask-become-pass (or -K) flag:
+ansible-playbook playbook.yaml --ask-become-pass

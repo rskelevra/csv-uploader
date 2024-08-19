@@ -1,91 +1,103 @@
-# Kubernetes Cluster Configuration with Kops
-
-This repository contains the YAML configuration files required to create and manage a Kubernetes cluster on AWS using Kops. The cluster utilizes multiple instance groups with a mix of spot and on-demand instances, providing an optimized balance of cost and reliability.
-
-## Configuration Files
-
-### `mixed-group-1.yaml`
-
-This file defines the first instance group (`mixed-group-1`) in the Kubernetes cluster. It uses a mix of spot and on-demand instances, ensuring cost savings while maintaining reliability for critical workloads.
-
-- **Instance Types**: A mix of `m3.xlarge`, `m4.xlarge`, `m5.xlarge`, `m5a.xlarge`, `t2.xlarge`, and `t3.xlarge`.
-- **Lifecycle**:
-  - **On-Demand Base Capacity**: At least 2 instances will always be on-demand.
-  - **On-Demand Percentage Above Base**: 50% of instances above the base will be on-demand.
-  - **Spot Allocation Strategy**: `capacity-optimized` to reduce the likelihood of interruptions.
-
-### `mixed-group-2.yaml`
-
-This file defines the second instance group (`mixed-group-1`). Similar to `mixed-group-2`, it also uses a mix of spot and on-demand instances but with different instance types.
-
-- **Instance Types**: A mix of `m4.large`, `m5.large`, and `t3.large`.
-- **Lifecycle**:
-  - **On-Demand Base Capacity**: At least 2 instances will always be on-demand.
-  - **On-Demand Percentage Above Base**: 50% of instances above the base will be on-demand.
-  - **Spot Allocation Strategy**: `capacity-optimized` to minimize the risk of spot instance termination.
-
-## Benefits
-
-### Cost Optimization
-
-Both instance groups are configured to utilize spot instances, which are significantly cheaper than on-demand instances. By balancing spot and on-demand instances, these configurations provide substantial cost savings without compromising the stability of critical workloads.
-
-### Enhanced Reliability
-
-The inclusion of on-demand instances in both groups ensures that essential workloads continue to operate even if spot instances are interrupted. The `capacity-optimized` strategy further enhances reliability by selecting spot instances with the highest availability.
-
-### Flexible and Scalable Infrastructure
-
-The mixed instances policy allows for flexible scaling of resources based on workload demands. The Cluster Autoscaler can adjust the number of instances in each group dynamically, optimizing the cluster's performance and cost-efficiency.
-
-## Usage Instructions
-
 ### Prerequisites
-
 - **Kops Installed**: Ensure Kops is installed on your local machine.
 - **AWS CLI Configured**: The AWS CLI should be configured with credentials that have the necessary permissions to manage EC2, VPC, and related AWS services.
 - **S3 Bucket for State Store**: An S3 bucket is required to store the Kops state (specified via the `KOPS_STATE_STORE` environment variable).
 
-### Steps to Apply the Configuration
+## Usage Instructions
+aws configure
 
-Save the YAML Files
+brew install kops  # For macOS using Homebrew
+or follow installation instructions for your operating system from the Kops Github Page https://github.com/kubernetes/kops.
 
-   Save the provided `mixed-group-1.yaml` and `mixed-group-2.yaml` files in your working directory.
+# Step 1: Set the Kops State Store
+export KOPS_STATE_STORE=s3://ounass-casestudy
 
-Apply the Instance Group Configurations
+# Step 2: Create the basic k8s cluster with single instance group
+kops create cluster --name ounass.k8s.local --zones ap-south-1a,ap-south-1b --master-size t2.micro --node-size t2.micro --master-count 1 --node-count 2 --yes --dns-zone ounass.com.np
 
-   Use the following commands to apply each instance group configuration to your Kops cluster:
+Create VPC & Launch Ubuntu EC2 instance t2.micro
+Login to EC2 instance
 
-   ```bash
-   kops replace -f mixed-group-1.yaml --name <your-cluster-name>
-   kops replace -f mixed-group-2.yaml --name <your-cluster-name>
+    2  ssh-keygen
+    7  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+   11  sudo apt install unzip
+   12  unzip awscliv2.zip
+   13  sudo ./aws/install
+   14  /usr/local/bin/aws --version
+   15  aws configure
+   19  curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+   20  chmod +x ./kubectl
+   21  sudo mv kubectl /usr/local/bin
+   25  curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+   26  chmod +x kops-linux-amd64
+   27  sudo mv kops-linux-amd64 /usr/local/bin/kops
+   28  kops version
+   30  export KOPS_STATE_STORE=s3://ounass-casestudy
+   31  kops create cluster --name=ounass.com.np --state=s3://ounass-casestudy --zones=us-east-1a --node-count=2 --node-size=t3.small --master-size=t3.medium --dns-zone=ounass.com.np --node-volume-size=12 --master-volume-size=20 --yes
 
-Update the Cluster
-Update the cluster with the new instance group configurations:
-kops update cluster --name <your-cluster-name> --yes
-Perform a Rolling Update (if needed)
+kops create cluster — name=ounass.com.np \
+— state=s3://ounass-casestudy \
+— zones=us-east-1a \
+— node-count=2 \
+— node-size=t3.small \
+— master-size=t3.medium \
+— dns-zone=ounass.com.np \
+— node-volume-size=12 \
+— master-volume-size=20 \
+— yes
 
-To apply the changes to running instances, perform a rolling update:
-kops rolling-update cluster --name <your-cluster-name> --yes
-Validate the Cluster
 
-Ensure that the cluster is running as expected:
-kops validate cluster --name <your-cluster-name>
+# Step 3: Apply the Configuration
+kops update cluster --name ounass.k8s.local --yes --admin
 
-Monitoring and Scaling
-Cluster Autoscaler
-Both instance groups are configured to work with the Cluster Autoscaler. The autoscaler will automatically adjust the number of nodes based on resource demand, ensuring efficient use of spot instances while maintaining a stable base of on-demand instances.
+# Step 4: Validate the cluster
+kops validate cluster --name ounass.k8s.local
 
-Logs and Monitoring
-You can monitor the Cluster Autoscaler and instance group activity through the Kubernetes dashboard or by using kubectl to check the logs:
+# Step 5: Edit the cluster and add InstanceGroup + ClusterAutoscaler config from the file ounass.k8s.local.yaml
+kops create -f ClusterAutoscaler.yaml
+kops create -f InstanceGroup.yaml
 
-kubectl logs -f deployment/cluster-autoscaler -n kube-system
-Troubleshooting
-If you encounter issues with the cluster or instance groups:
+kops update cluster --name ounass.k8s.local --yes --admin
+kops validate cluster --name ounass.k8s.local
 
-Check Kops Logs
+kops edit cluster --name ounass.k8s.local
 
-Use the following command to check the Kops cluster logs:
-kops validate cluster --name <your-cluster-name>
+# Step 6: Apply the Configuration
+kops update cluster --name ounass.k8s.local --yes --admin
 
-Check the AWS EC2 and S3 dashboards for any issues related to instances, VPCs, or the Kops state store.
+# Step 4: Validate the cluster
+kops validate cluster --name ounass.k8s.local
+
+# Kubernetes Cluster Configuration with Kops
+This repository contains the YAML configuration files required to create and manage a Kubernetes cluster on AWS using Kops. The cluster utilizes multiple instance groups with a mix of spot and on-demand instances, providing an optimized balance of cost and reliability.
+
+## Configuration Files
+
+1. Instance Group for the Master Node
+Name: master-ap-south-1a
+Benefit:
+This Instance Group is responsible for managing the control plane of the Kubernetes cluster. It ensures that a master node runs in the ap-south-1a availability zone with a t2.micro instance type.
+Focuses on stability and cost-effectiveness for control plane operations.
+
+2. Instance Group 1: Mixed Instances Policy
+Name: mixed
+Benefit: The mixed Instance Group offers a well-balanced approach to managing workloads in a Kubernetes cluster. It combines the cost-saving benefits of Spot instances with the reliability of On-Demand instances, all while ensuring high availability and flexibility through the use of multiple instance types and subnets. This makes it an ideal configuration for production environments that require both efficiency and resilience.
+
+3. Instance Group 2: On-Demand Lifecycle
+Name: on-demand-group
+Benefit: This Instance Group is configured to use On-Demand instances, ensuring consistent availability and performance. It is suited for workloads that require guaranteed uptime without the risk of interruption.
+
+4. Instance Group 3: Spot Lifecycle
+Name: spot-group
+Benefit: This Instance Group is configured to use Spot instances, offering cost savings by utilizing spare AWS capacity. It is ideal for fault-tolerant workloads that can handle interruptions.
+
+## Benefits
+
+### Cost Optimization
+Instance groups are configured to utilize spot instances, which are significantly cheaper than on-demand instances. By balancing spot and on-demand instances, these configurations provide substantial cost savings without compromising the stability of critical workloads.
+
+### Enhanced Reliability
+The inclusion of on-demand instances in the groups ensures that essential workloads continue to operate even if spot instances are interrupted. The `capacity-optimized` strategy further enhances reliability by selecting spot instances with the highest availability.
+
+### Flexible and Scalable Infrastructure
+The mixed instances policy allows for flexible scaling of resources based on workload demands. The Cluster Autoscaler can adjust the number of instances in each group dynamically, optimizing the cluster's performance and cost-efficiency.
