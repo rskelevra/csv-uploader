@@ -1,3 +1,12 @@
+#Requirements to Run the Python App Directly
+Flask
+boto3
+python-dotenv
+#pip install Flask boto3 python-dotenv
+
+
+##Requirements to Run by Dockerfile
+
 # No additional requirements are needed.
 # All dependencies are installed directly within the Dockerfile.
 # Flask, Boto3, and python-dotenv are installed via pip in the Dockerfile.

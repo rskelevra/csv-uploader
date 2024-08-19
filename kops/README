@@ -4,72 +4,48 @@
 - **S3 Bucket for State Store**: An S3 bucket is required to store the Kops state (specified via the `KOPS_STATE_STORE` environment variable).
 
 ## Usage Instructions
+sudo apt update -y
+Create an IAM User: Set up an IAM user with the necessary permissions. It's recommended to grant Administrator access for full control. Make sure the user has programmatic access enabled.
+
+Generate Access Keys: Obtain the access key and secret key for the IAM user you just created.
+
+Log in to AWS: From your Kops EC2 instance, log in to AWS using:
 aws configure
+Provide AWS Credentials: The aws configure command will prompt you for the access key, secret key, region, and output format. Enter the details as required.
 
-brew install kops  # For macOS using Homebrew
-or follow installation instructions for your operating system from the Kops Github Page https://github.com/kubernetes/kops.
+Create an S3 Bucket: Set up an S3 bucket to store all the configuration and state files related to your Kubernetes cluster.
 
-# Step 1: Set the Kops State Store
-export KOPS_STATE_STORE=s3://ounass-casestudy
+Set Up DNS in Route53: Create a hosted zone in AWS Route53 for your domain. If your domain is registered elsewhere (e.g., Hostinger), you'll need to link it by adding the NS records from Route53 to your DNS provider.
 
-# Step 2: Create the basic k8s cluster with single instance group
-kops create cluster --name ounass.k8s.local --zones ap-south-1a,ap-south-1b --master-size t2.micro --node-size t2.micro --master-count 1 --node-count 2 --yes --dns-zone ounass.com.np
+Link NS Records: Add the Name Server (NS) records from your Route53 hosted zone to the DNS server where your domain is registered (e.g., Hostinger).
 
-Create VPC & Launch Ubuntu EC2 instance t2.micro
-Login to EC2 instance
+Install Kubectl: Install the Kubernetes command-line tool kubectl by following the instructions at Install Kubectl on Linux.
+Generate SSH Keys: Create SSH keys by executing the following command:
+ssh-keygen -f .ssh/id_rsa
 
-    2  ssh-keygen
-    7  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-   11  sudo apt install unzip
-   12  unzip awscliv2.zip
-   13  sudo ./aws/install
-   14  /usr/local/bin/aws --version
-   15  aws configure
-   19  curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-   20  chmod +x ./kubectl
-   21  sudo mv kubectl /usr/local/bin
-   25  curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
-   26  chmod +x kops-linux-amd64
-   27  sudo mv kops-linux-amd64 /usr/local/bin/kops
-   28  kops version
-   30  export KOPS_STATE_STORE=s3://ounass-casestudy
-   31  kops create cluster --name=ounass.com.np --state=s3://ounass-casestudy --zones=us-east-1a --node-count=2 --node-size=t3.small --master-size=t3.medium --dns-zone=ounass.com.np --node-volume-size=12 --master-volume-size=20 --yes
+Create the Kubernetes Cluster: Run the command below to initiate cluster creation. Make sure to modify it with your specific details:
+kops create cluster --name=<your-cluster-name> --state=s3://<your-s3-bucket> --zones=<your-zone> --node-count=1 --node-size=t2.medium --control-plane-size=t2.medium --dns-zone=<your-dns-zone>
 
-kops create cluster — name=ounass.com.np \
-— state=s3://ounass-casestudy \
-— zones=us-east-1a \
-— node-count=2 \
-— node-size=t3.small \
-— master-size=t3.medium \
-— dns-zone=ounass.com.np \
-— node-volume-size=12 \
-— master-volume-size=20 \
-— yes
-
-
-# Step 3: Apply the Configuration
-kops update cluster --name ounass.k8s.local --yes --admin
+Review and Apply Configuration: The command above will generate a preview of the resources that Kops plans to create. If the preview looks good, finalize the creation by running:
+kops update cluster --name <your-cluster-name> --yes --admin --state=s3://<your-s3-bucket>
 
 # Step 4: Validate the cluster
 kops validate cluster --name ounass.k8s.local
 
-# Step 5: Edit the cluster and add InstanceGroup + ClusterAutoscaler config from the file ounass.k8s.local.yaml
+# Step 5: Create InstanceGroup and ClusterAutoscaler config
 kops create -f ClusterAutoscaler.yaml
+
+kops create -f CustomResourceDefinition.yaml  #must specify a cluster when creating additional objects
 kops create -f InstanceGroup.yaml
 
 kops update cluster --name ounass.k8s.local --yes --admin
 kops validate cluster --name ounass.k8s.local
-
-kops edit cluster --name ounass.k8s.local
 
 # Step 6: Apply the Configuration
 kops update cluster --name ounass.k8s.local --yes --admin
 
 # Step 4: Validate the cluster
 kops validate cluster --name ounass.k8s.local
-
-# Kubernetes Cluster Configuration with Kops
-This repository contains the YAML configuration files required to create and manage a Kubernetes cluster on AWS using Kops. The cluster utilizes multiple instance groups with a mix of spot and on-demand instances, providing an optimized balance of cost and reliability.
 
 ## Configuration Files
 

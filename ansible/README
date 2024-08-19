@@ -1,5 +1,5 @@
 The Ansible playbook is designed to automate the deployment and configuration of the csv-uploader web application, which is built using Flask.
-The playbook ensures that the necessary dependencies are installed, the application configuration is correctly set up, and the application is restarted after configuration changes.
+The playbook ensures that the necessary dependencies are installed, the application configuration is correctly set up.
 
 csv-uploader/
 │
@@ -10,8 +10,6 @@ csv-uploader/
 └── ├── README
 
 Running the Playbook:-
-ansible-playbook -i inventory ansible/playbook.yaml
-
-Sudo Password Requirement:
 You can provide it when running the playbook by using the --ask-become-pass (or -K) flag:
 ansible-playbook playbook.yaml --ask-become-pass
+

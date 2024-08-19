@@ -1,4 +1,3 @@
-# Instance Group for the master node
 ---
 apiVersion: kops.k8s.io/v1alpha2
 kind: InstanceGroup

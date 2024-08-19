@@ -23,20 +23,6 @@ service:
     app: csv-uploader-helm
   selector:
     app: csv-uploader-helm
-ingress:
-  enabled: true
-  className: "nginx"
-  tls:
-  - secretName: tls
-    hosts:
-    - csv-uploader-helm.whs.ounass.com
-  hosts:
-  - host: csv-uploader-helm.whs.ounass.com
-    paths:
-    - path: /
-      serviceName: csv-uploader-helm
-      servicePort: 8080
-      pathType: ImplementationSpecific
 autoscaling:
   enabled: true
   minReplicas: 1

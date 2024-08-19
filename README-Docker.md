@@ -16,7 +16,9 @@ Kubernetes setup with Kops featuring mixed instance groups and auto-scaling for 
    git clone https://github.com/rskelevra/csv-uploader.git
    cd csv-uploader
 
-2. **Set up environment variable in .env file**:
+   docker login
+
+2. **Set up environment variable in .env file if not already setup**:
 
 AWS_BUCKET_NAME='changeme'
 FLASK_ACCESS_KEY_ID='changeme'
@@ -34,7 +36,7 @@ mkdir uploads
 docker build -t csv-uploader:latest .
 
 5. **Running the Application**:
-docker run -p 8080:5000 --name web my-web-app:latest
+docker run -p 8080:5000 --name web csv-uploader:latest
 
 The application will start on http://127.0.0.1:8080/. Open this URL in your web browser to access the web interface.
 
