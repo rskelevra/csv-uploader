@@ -1,7 +1,7 @@
 ---
-- name: Configure Nginx in Kops
-  hosts: localhost
-  become: yes
+- name: Configure Nginx
+  hosts: localhost  # Replace with actual hostname/IP, update in inventory.ini
+  become: yes # Assuming you have privileges to manage the container
   gather_facts: no
 
   vars:
@@ -27,31 +27,11 @@
         state: directory
         mode: '0755'
 
-
     - name: Deploy Nginx configuration file
       template:
         src: templates/nginx.conf.j2
         dest: /etc/nginx/nginx.conf
         mode: '0644'
-
-    - name: Deploy SSL certificate
-      copy:
-        src: "{{ ssl_certificate_file }}"
-        dest: /etc/nginx/ssl/cert.crt
-        remote_src: true
-        mode: '0644'
-
-    - name: Deploy SSL certificate key
-      copy:
-        src: "{{ ssl_certificate_key_file }}"
-        dest: /etc/nginx/ssl/cert.key
-        mode: '0600'
-
-    - name: Ensure Nginx is installed
-      apt:
-        name: nginx
-        state: present
-        update_cache: yes
 
     - name: Create additional directories
       file:
@@ -66,3 +46,22 @@
       stat:
         path: /etc/nginx/nginx.conf
       register: nginx_conf
+
+    - name: Ensure Nginx is installed
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Deploy SSL certificate
+      copy:
+        src: "{{ ssl_certificate_file }}"
+        dest: /etc/nginx/ssl/cert.crt
+        remote_src: true
+        mode: '0644'
+
+    - name: Deploy SSL certificate key
+      copy:
+        src: "{{ ssl_certificate_key_file }}"
+        dest: /etc/nginx/ssl/cert.key
+        mode: '0600'

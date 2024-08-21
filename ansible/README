@@ -10,8 +10,11 @@ csv-uploader/
 └── ├── README
 
 Running the Playbook:-
-You can provide it when running the playbook by using the --ask-become-pass (or -K) flag:
+To run in localhost, You can provide it when running the playbook by using the --ask-become-pass (or -K) flag:
 ansible-playbook playbook.yaml --ask-become-pass
+
+To use inventory-file
+ansible-playbook -i inventory.ini playbook.yaml --ask-become-pass
 
 #Sensitive Information - Prefer using Ansible Vault or external secret management tools for storing sensitive information.
 Password: Spain@2023#
@@ -32,5 +35,11 @@ YAML
     - name: shared-storage
       mountPath: /etc/nginx/ssl
 
+Create k8s secret file directly on cluster and reference the key-value pair of SM from there
+
 Note: Currently I have not stored secrets on AWS SM & above content to my deployment (without secret it'll fail at later stage),
 To successfully deploy the key & certificates, please follow the steps outlined in the previous section to add the necessary content to your deployment configuration and store the certificates in AWS Secret Manager.
+
+
+# In the actual k8s cluster, it is recommended to target the specific pod or deployment using Kubernetes-specific Ansible modules
+https://docs.ansible.com/ansible/2.9/modules/k8s_module.html
