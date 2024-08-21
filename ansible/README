@@ -15,3 +15,22 @@ ansible-playbook playbook.yaml --ask-become-pass
 
 #Sensitive Information - Prefer using Ansible Vault or external secret management tools for storing sensitive information.
 Password: Spain@2023#
+
+Managing SSL Certificates with AWS Secret Manager
+To securely store and manage your SSL certificates, I recommend using AWS Secret Manager. This service provides a centralized repository for secrets, ensuring they are encrypted at rest and in transit.
+
+Create an AWS Secret Manager Secret:
+Log in to your AWS Management Console and navigate to the Secret Manager service.
+Create a new secret with a name like "nginx-ssl-certs".
+Add your SSL certificate and private key as secret values.
+
+Modify your deployment.yaml to reference the AWS Secret Manager secret:
+YAML
+- name: Nginx
+  image: nginx:latest
+  volumeMounts:
+    - name: shared-storage
+      mountPath: /etc/nginx/ssl
+
+Note: Currently I have not stored secrets on AWS SM & above content to my deployment (without secret it'll fail at later stage),
+To successfully deploy the key & certificates, please follow the steps outlined in the previous section to add the necessary content to your deployment configuration and store the certificates in AWS Secret Manager.
