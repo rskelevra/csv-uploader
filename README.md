@@ -17,9 +17,7 @@ Clone this repository to your local machine:
    git clone https://github.com/rskelevra/csv-uploader.git
    cd csv-uploader
 
-2. Install Required Python Packages manually:
-py
-   Install by requirements file:
+2. Install Required Python Packages manually or Install by requirements file:
    pip install -r requirements.txt
 
 3. To create an S3 bucket
