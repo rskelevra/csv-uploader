@@ -1,16 +1,6 @@
 namespace: default
 
 env:
-- name: DATABASE_USERNAME
-  valueFrom:
-    secretKeyRef:
-      name: csv-uploader
-      key: database_username
-- name: DATABASE_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: csv-uploader
-      key: database_password
 
 service:
   type: NodePort
@@ -20,15 +10,15 @@ service:
     nodePort: 30080
     name: http
   labels:
-    app: csv-uploader-helm
+    app: "{{ .Release.Name }}"
   selector:
-    app: csv-uploader-helm
+    app: "{{ .Release.Name }}"
 autoscaling:
   enabled: true
   minReplicas: 1
   maxReplicas: 10  # Must be greater than 0
   targetCPUUtilizationPercentage: 80
-  deploymentName: "csv-uploader-helm"  # This should match your deployment's name
+  deploymentName: "csv-uploader"  # This should match your deployment's name
   secret:
   name: ounasss-secret-helm
 configmap:
@@ -39,7 +29,7 @@ deployment:
   replicaCount: 1
   updatestrategy:
   selectorLabels:
-    app: csv-uploader-helm
+    app: "{{ .Release.Name }}"
   livenessProbe:
     httpGet:
       path: /healthz
@@ -69,9 +59,6 @@ deployment:
         privileged: false
         readOnlyRootFilesystem: true
       volumeMounts:
-        - name: certificates
-          mountPath: /certificates
-          readOnly: true
         - name: shared-storage
           mountPath: /usr/share/nginx/html
       resources:
@@ -95,16 +82,6 @@ deployment:
         seccompProfile:
           type: RuntimeDefault
       env:
-        - name: DATABASE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: csv-uploader
-              key: database_username
-        - name: DATABASE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: csv-uploader
-              key: database_password
       volumeMounts:
         - name: shared-storage
           mountPath: /app/static
@@ -115,14 +92,8 @@ deployment:
         limits:
           cpu: 500m
           memory: 500Mi
-  imagePullSecrets: artifacthub-pull-secret-new
+  imagePullSecrets: artifacthub-dummy-secret-new
   imagePullPolicy: Always
   volumes:
-    - name: certificates
-      secret:
-        secretName: ounass-full-certificates-keystore
-        items:
-          - key: ounass_keystore_payload
-            path: keystore.jks
     - name: shared-storage
       emptyDir: {}

@@ -224,7 +224,6 @@ spec:
                               type: array
                             username:
                               description: Username that Kubernetes will see the user
-                                as
                               type: string
                           type: object
                         type: array

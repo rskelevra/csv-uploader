@@ -17,12 +17,12 @@ Clone this repository to your local machine:
    git clone https://github.com/rskelevra/csv-uploader.git
    cd csv-uploader
 
-2. Install Required Python Packages
-Install the necessary packages:
-pip install Flask boto3 python-dotenv
+2. Install Required Python Packages manually:
+py
+   Install by requirements file:
+   pip install -r requirements.txt
 
-3. Create an S3 Bucket
-To create an S3 bucket and set up Glacier transition, follow these steps:
+3. To create an S3 bucket
 aws s3 mb s3://<your-bucket-name> --region <your-region>
 # Example
 aws s3 mb s3://ounass-csv-storage --region ap-south-1
@@ -54,7 +54,6 @@ Action: Transition objects to S3 Glacier.
 For Cost Optimization and Data Retention:
 Move current versions to S3 Standard-IA after 30 days, and to S3 Glacier after 90 days.
 Move noncurrent versions to S3 Glacier after 30 days.
-
 
 7. Application Features
 Upload CSV Files: Users can upload CSV files through the web interface.

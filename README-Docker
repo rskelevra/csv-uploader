@@ -28,14 +28,10 @@ DOMAIN='localhost'
 PORT='8080'
 PREFIX=
 
-3. **Create empty uploads/ directory**:
-
-mkdir uploads
-
-4. **Build the Application**:
+3. **Build the Application**:
 docker build -t csv-uploader:latest .
 
-5. **Running the Application**:
+4. **Running the Application**:
 docker run -p 8080:5000 --name web csv-uploader:latest
 
 The application will start on http://127.0.0.1:8080/. Open this URL in your web browser to access the web interface.

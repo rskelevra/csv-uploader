@@ -21,6 +21,13 @@
         state: directory
         mode: '0755'
 
+    - name: Create necessary directories
+      file:
+        path: /etc/nginx/ssl
+        state: directory
+        mode: '0755'
+
+
     - name: Deploy Nginx configuration file
       template:
         src: templates/nginx.conf.j2

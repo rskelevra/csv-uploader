@@ -25,6 +25,7 @@ def index():
     return render_template('index.html', files=files)
 
 @app.route('/upload', methods=['POST'])
+@app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
         flash('No file part')
@@ -39,17 +40,18 @@ def upload_file():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
 
-        # Process CSV file (print lines to the browser)
+        # Process CSV file and collect lines to display
+        content = []
         with open(filepath, 'r') as f:
             content = f.readlines()
-            for line in content:
-                print(line.strip())
 
         # Upload file to S3
         s3_client.upload_file(filepath, BUCKET_NAME, file.filename)
 
         flash(f'File {file.filename} successfully uploaded and processed.')
-        return redirect(url_for('index'))
+
+        # Display the file content in the browser
+        return render_template('file_content.html', content=content)
 
 if __name__ == '__main__':
     app.run(debug=True)

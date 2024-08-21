@@ -1,26 +1,17 @@
-{{- if .Values.service }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Values.namespace }}
   labels:
-    {{- with .Values.service.labels }}
-    {{ toYaml . }}
-    {{- end }}
+    app: "{{ .Release.Name }}"
 spec:
-  {{- if .Values.service.type }}
-  type: {{ .Values.service.type }}
-  {{- else }}
-  type: "ClusterIP"
-  {{- end }}
+  type: NodePort
   ports:
-    - port: {{ .Values.service.ports.port }}
-      targetPort: {{ .Values.service.ports.targetPort }}
-      protocol: {{ .Values.service.ports.protocol }}
-      name: {{ .Values.service.ports.portName }}
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+      protocol: TCP
+      name: http
   selector:
-    {{- with .Values.service.selector }}
-    {{ toYaml . | nindent 4 }}
-    {{- end }}
-{{- end }}
+    app: "{{ .Release.Name }}"

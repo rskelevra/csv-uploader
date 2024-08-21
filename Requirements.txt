@@ -1,9 +1,10 @@
-#Requirements to Run the Python App Directly
-Flask
-boto3
-python-dotenv
-#pip install Flask boto3 python-dotenv
+#Requirements to Run the Python App Directly:
+Flask==2.3.2
+boto3==1.28.0
+python-dotenv==1.0.0
 
+#Manual approach:
+#pip install Flask boto3 python-dotenv
 
 ##Requirements to Run by Dockerfile
 

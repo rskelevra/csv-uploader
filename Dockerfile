@@ -33,4 +33,3 @@ ENV FLASK_APP=app.py
 
 # Run the application
 CMD ["python3", "-m" ,"flask", "run", "--host=0.0.0.0"]
-

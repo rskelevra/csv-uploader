@@ -13,7 +13,7 @@ Log in to AWS: From your Kops EC2 instance, log in to AWS using:
 aws configure
 Provide AWS Credentials: The aws configure command will prompt you for the access key, secret key, region, and output format. Enter the details as required.
 
-Create an S3 Bucket: Set up an S3 bucket to store all the configuration and state files related to your Kubernetes cluster.
+Create an S3 Bucket or use existing: Set up an S3 bucket to store all the configuration and state files related to your Kubernetes cluster.
 
 Set Up DNS in Route53: Create a hosted zone in AWS Route53 for your domain. If your domain is registered elsewhere (e.g., Hostinger), you'll need to link it by adding the NS records from Route53 to your DNS provider.
 
@@ -36,7 +36,7 @@ kops validate cluster --name ounass.k8s.local
 kops create -f ClusterAutoscaler.yaml
 
 kops create -f CustomResourceDefinition.yaml  #must specify a cluster when creating additional objects
-kops create -f InstanceGroup.yaml
+kops create -f InstanceGroup.yaml             #require crd to be installed, hence the above step should be executed
 
 kops update cluster --name ounass.k8s.local --yes --admin
 kops validate cluster --name ounass.k8s.local

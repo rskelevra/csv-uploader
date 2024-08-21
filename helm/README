@@ -13,6 +13,10 @@ service.yaml: This template defines a Kubernetes Service resource, exposing your
 
 hpa.yaml: This template defines a Horizontal Pod Autoscaler resource, which automatically scales the number of Pods in your deployment based on observed CPU utilization or other select metrics.
 
+*****
+configmap.yaml, statefulset.yaml: They are not being used in this chart but are for future uses.
+secret.yaml: "Secret resources should not be deployed as part of a Helm chart if they contain sensitive information. Instead, they should be created directly on the cluster, with the secret values being securely managed by external systems such as AWS Secrets Manager, HashiCorp Vault, or Fortanix."
+
 ## Prerequisites
 Before deploying this Helm chart, ensure that you have the following:
 Kubernetes Cluster: A running Kubernetes cluster, either local or in the cloud.

@@ -13,3 +13,5 @@ Running the Playbook:-
 You can provide it when running the playbook by using the --ask-become-pass (or -K) flag:
 ansible-playbook playbook.yaml --ask-become-pass
 
+#Sensitive Information - Prefer using Ansible Vault or external secret management tools for storing sensitive information.
+Password: Spain@2023#
