@@ -4,7 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: k8s.ounassapp.com
+  name: k8s.rskelevraapp.com
 spec:
   group: kops.k8s.io
   names:

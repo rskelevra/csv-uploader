@@ -4,5 +4,5 @@ metadata:
   name: {{ .Release.Name }}-configmap
   namespace: {{ .Values.namespace }}
 data:
-  DATABASE_READER_URL: 'jdbc:postgresql://test.eu-west-1.rds.amazonaws.com/ounass'
-  DATABASE_URL: 'jdbc:postgresql://test.eu-west-1.rds.amazonaws.com/ounass'
+  DATABASE_READER_URL: 'jdbc:postgresql://test.eu-west-1.rds.amazonaws.com/rskelevra'
+  DATABASE_URL: 'jdbc:postgresql://test.eu-west-1.rds.amazonaws.com/rskelevra'

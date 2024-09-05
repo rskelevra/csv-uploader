@@ -7,7 +7,7 @@
   vars:
     ssl_certificate_file: "/etc/nginx/ssl/cert.crt"  # Replace with your actual certificate path
     ssl_certificate_key_file: "/etc/nginx/ssl/cert.key"  # Replace with your actual key path
-    domain_name: "ounassapp.com"  # Define the domain name here
+    domain_name: "rskelevraapp.com"  # Define the domain name here
     shared_storage_path: "/usr/share/nginx/html"  # Define the shared storage path here
 
   tasks:
