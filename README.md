@@ -1,4 +1,4 @@
-
+<img width="1280" alt="image" src="https://github.com/user-attachments/assets/5cb6abfc-67fd-481b-aedc-ec8cd522971a">
 # csv-uploader
 >Web application for uploading and processing CSV files. This project provides a Python (Flask) web application that allows users to upload CSV files through a web interface. The application performs basic processing (currently printing content to the browser) and then stores the files in an S3 bucket. 
 >To optimize storage costs and data retention, the application automatically configures an S3 lifecycle rule to transition files to S3 Glacier after a specified period. This helps reduce storage costs for infrequently accessed files.
@@ -26,7 +26,8 @@
 - Helm
 
 ## Architecture
-<!-- <img width="1299" alt="image" src="https://github.com/user-attachments/assets/7c8559a8-3d6f-468c-bdd6-77a63fd29ddd">
+![Example screenshot](./Architecture.png)
+<!-- <img width="1276" alt="image" src="https://github.com/user-attachments/assets/783b7ee5-d05c-47d1-8ff2-040f240c356e">
  -->
 
 ## Setup
